@@ -1,14 +1,15 @@
 import prismadb from "@/lib/prismadb";
 import { ProductForm } from "./components/product-form";
+import { parse } from "path";
 
 
 const BillboardPage = async ({
    params,
 }: {
-   params: Promise<{ productId: string }>;
+   params: Promise<{ productId: string; storeId: string }>;
 }) => {
 
-   const { productId } = await params;
+   const { productId, storeId } = await params;
 
    const product = await prismadb.product.findUnique({
       where: {
@@ -20,11 +21,38 @@ const BillboardPage = async ({
    });
 
 
+   const categories = await prismadb.category.findMany({
+      where: {
+         storeId,
+      }
+   })
+
+   const sizes = await prismadb.size.findMany({
+      where: {
+         storeId,
+      }
+   })
+
+   const colors = await prismadb.color.findMany({
+      where: {
+         storeId,
+      }
+   })
+
+
 
    return (
       <div className="flex-col">
          <div className="flex-1 space-y-4 p-8 pt-6">
-            <ProductForm initialData={product} />
+            <ProductForm
+               initialData={product ? {
+                  ...product,
+                  price: parseFloat(product.price.toString()),
+               } : null}
+               categories={categories}
+               sizes={sizes}
+               colors={colors}
+            />
          </div>
       </div>
    );
